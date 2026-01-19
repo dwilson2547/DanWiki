@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-01-19
+
+### Changed
+- **Page Edit Tags Layout**: Improved tag management visibility and organization
+  - Moved tags to their own dedicated row below the title header
+  - Tags now span the full width for better visibility and easier management
+  - Separated tags from the title input for cleaner visual hierarchy
+  - Provides more horizontal space for tag display and editing
+
+## [1.3.2] - 2026-01-19
+
+### Changed
+- **Page Edit Layout Improvement**: Reorganized page editor metadata fields for better workflow
+  - Moved parent page selection, summary, and change summary fields above the editor
+  - Fields now appear in a dedicated metadata section between the title and editor
+  - Improved visual hierarchy with fields positioned under the page title
+  - Removed footer section to provide more vertical space for the editor
+  - Responsive layout with flexible field sizing for smaller screens
+
+## [1.3.1] - 2026-01-19
+
+### Fixed
+- **Dark Mode Compatibility**: Fixed text visibility in ParentPageSelect dropdown when hovering over options in dark mode
+  - Removed hardcoded fallback colors that caused invisible text on hover
+  - Dropdown now properly uses theme CSS variables for both light and dark modes
+- **Modal Overflow Issue**: Fixed ParentPageSelect dropdown causing modal overflow in page creation dialog
+  - Dropdown menu now renders to document.body using menuPortalTarget
+  - Menu appears in front of modal with proper z-index layering
+  - Long page lists no longer cause the create page modal to overflow
+
+## [1.3.0] - 2026-01-19
+
+### Added
+- **Enhanced Parent Page Selection**: Improved parent page dropdown with searchable interface and depth visualization
+  - Replaced standard dropdowns with react-select searchable component
+  - Visual depth indicators using tree-style characters (└─) to show page hierarchy
+  - Real-time search filtering to quickly find parent pages by title
+  - Consistent parent page selection experience across page creation and editing
+  - Better visual clarity for nested page structures
+  - New reusable `ParentPageSelect` component for maintainability
+
+### Changed
+- Parent page selection dropdowns now use react-select library for enhanced UX
+- Page depth is now clearly indicated with visual tree characters instead of just spacing
+- Search functionality allows filtering through large page hierarchies efficiently
+
 ## [1.2.1] - 2026-01-19
 
 ### Added

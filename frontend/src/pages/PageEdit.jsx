@@ -4,6 +4,7 @@ import { Save, X, ChevronRight, Upload, Paperclip, Trash2, Search } from 'lucide
 import { pagesAPI, attachmentsAPI } from '../services/api';
 import MarkdownEditor from '../components/MarkdownEditor';
 import TagManager from '../components/TagManager';
+import ParentPageSelect from '../components/ParentPageSelect';
 
 export default function PageEdit() {
   const { wikiId, pageId } = useParams();
@@ -163,7 +164,7 @@ export default function PageEdit() {
             Cancel
           </button>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, maxWidth: 600 }}>
+          <div style={{ flex: 1, maxWidth: 600 }}>
             <input
               type="text"
               value={title}
@@ -172,13 +173,6 @@ export default function PageEdit() {
               className="form-input"
               style={{ fontSize: '1.25rem', fontWeight: 600 }}
             />
-            {page && (
-              <TagManager
-                wikiId={wikiId}
-                pageId={pageId}
-                initialTags={page.tags || []}
-              />
-            )}
           </div>
         </div>
 
@@ -202,49 +196,45 @@ export default function PageEdit() {
         </div>
       </header>
 
-      {/* Editor */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <MarkdownEditor
-          ref={editorRef}
-          wikiId={parseInt(wikiId)}
-          pageId={parseInt(pageId)}
-          initialValue={content}
-          onChange={setContent}
-          height="100%"
-          placeholder="Start writing your page content..."
-        />
-      </div>
+      {/* Tags Section */}
+      {page && (
+        <div style={{ 
+          padding: '0.75rem 1.5rem', 
+          borderBottom: '1px solid var(--border)',
+          background: 'var(--surface)'
+        }}>
+          <TagManager
+            wikiId={wikiId}
+            pageId={pageId}
+            initialTags={page.tags || []}
+          />
+        </div>
+      )}
 
-      {/* Footer with metadata */}
-      <footer style={{ 
-        padding: '0.75rem 1.5rem', 
-        borderTop: '1px solid var(--border)',
+      {/* Metadata Section */}
+      <div style={{ 
+        padding: '1rem 1.5rem', 
+        borderBottom: '1px solid var(--border)',
         background: 'var(--surface)',
         display: 'flex',
-        alignItems: 'center',
-        gap: '1rem'
+        alignItems: 'flex-end',
+        gap: '1rem',
+        flexWrap: 'wrap'
       }}>
-        <div className="form-group" style={{ marginBottom: 0, flex: 1, maxWidth: 300 }}>
-          <label className="text-xs text-secondary mb-1" style={{ display: 'block' }}>
+        <div className="form-group" style={{ marginBottom: 0, flex: '1 1 250px', maxWidth: 350 }}>
+          <label className="form-label" style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
             Parent Page
           </label>
-          <select
-            className="form-input"
-            value={parentId || ''}
-            onChange={(e) => setParentId(e.target.value ? parseInt(e.target.value) : null)}
-            style={{ fontSize: '0.875rem' }}
-          >
-            <option value="">None (top level)</option>
-            {flatPages.map(p => (
-              <option key={p.id} value={p.id}>
-                {'  '.repeat(p.level)}{p.title}
-              </option>
-            ))}
-          </select>
+          <ParentPageSelect
+            pages={pages}
+            value={parentId}
+            onChange={setParentId}
+            placeholder="None (top level)"
+          />
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0, flex: 1, maxWidth: 300 }}>
-          <label className="text-xs text-secondary mb-1" style={{ display: 'block' }}>
+        <div className="form-group" style={{ marginBottom: 0, flex: '1 1 250px', maxWidth: 350 }}>
+          <label className="form-label" style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
             Summary (for search)
           </label>
           <input
@@ -257,8 +247,8 @@ export default function PageEdit() {
           />
         </div>
 
-        <div className="form-group" style={{ marginBottom: 0, flex: 1, maxWidth: 300 }}>
-          <label className="text-xs text-secondary mb-1" style={{ display: 'block' }}>
+        <div className="form-group" style={{ marginBottom: 0, flex: '1 1 250px', maxWidth: 350 }}>
+          <label className="form-label" style={{ fontSize: '0.875rem', marginBottom: '0.25rem' }}>
             Change Summary
           </label>
           <input
@@ -270,7 +260,20 @@ export default function PageEdit() {
             style={{ fontSize: '0.875rem' }}
           />
         </div>
-      </footer>
+      </div>
+
+      {/* Editor */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <MarkdownEditor
+          ref={editorRef}
+          wikiId={parseInt(wikiId)}
+          pageId={parseInt(pageId)}
+          initialValue={content}
+          onChange={setContent}
+          height="100%"
+          placeholder="Start writing your page content..."
+        />
+      </div>
 
       {/* Attachments Modal */}
       {showAttachments && (

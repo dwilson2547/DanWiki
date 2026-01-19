@@ -10,6 +10,7 @@ import PageTree from '../components/PageTree';
 import Search from '../components/Search';
 import Modal from '../components/Modal';
 import UserMenu from '../components/UserMenu';
+import ParentPageSelect from '../components/ParentPageSelect';
 
 export default function WikiLayout() {
   const { wikiId } = useParams();
@@ -275,21 +276,12 @@ export default function WikiLayout() {
 
           <div className="form-group">
             <label className="form-label">Parent Page (optional)</label>
-            <select
-              className="form-input"
-              value={newPage.parent_id || ''}
-              onChange={(e) => setNewPage({ 
-                ...newPage, 
-                parent_id: e.target.value ? parseInt(e.target.value) : null 
-              })}
-            >
-              <option value="">None (top level)</option>
-              {flatPages.map(page => (
-                <option key={page.id} value={page.id}>
-                  {'  '.repeat(page.level)}{page.title}
-                </option>
-              ))}
-            </select>
+            <ParentPageSelect
+              pages={pages}
+              value={newPage.parent_id}
+              onChange={(value) => setNewPage({ ...newPage, parent_id: value })}
+              placeholder="None (top level)"
+            />
           </div>
         </form>
       </Modal>
