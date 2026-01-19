@@ -1,0 +1,25 @@
+# FastAPI and ASGI server
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# ML and LLM
+torch
+transformers
+accelerate
+bitsandbytes  # For 4-bit quantization
+sentencepiece  # For some tokenizers
+
+# Sentence embeddings for tag matching
+sentence-transformers
+
+# Redis Queue for batch processing
+redis
+rq
+
+# HTTP client for callbacks
+httpx
+
+# Utilities
+python-dotenv

@@ -1,0 +1,33 @@
+{
+  "name": "wiki-frontend",
+  "version": "1.2.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:api\" \"npm run dev:embedding-service\" \"npm run dev:worker\"",
+    "dev:frontend": "vite",
+    "dev:api": "cd .. && python run.py",
+    "dev:embedding-service": "cd ../embedding_service && python app.py",
+    "dev:worker": "cd ../worker && python worker.py",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@toast-ui/editor": "^3.2.2",
+    "@toast-ui/editor-plugin-code-syntax-highlight": "^3.1.0",
+    "@toast-ui/react-editor": "^3.2.3",
+    "axios": "^1.6.2",
+    "lucide-react": "^0.294.0",
+    "prismjs": "^1.30.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "vite": "^5.0.8"
+  }
+}

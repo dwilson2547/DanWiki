@@ -1,0 +1,40 @@
+# Flask and extensions
+Flask
+Flask-SQLAlchemy
+Flask-JWT-Extended
+Flask-Migrate
+Flask-CORS
+
+# Database
+SQLAlchemy
+psycopg2-binary
+
+# Password hashing
+bcrypt
+
+# Validation
+marshmallow
+email-validator
+
+# File handling
+python-magic
+Pillow
+
+# Utilities
+python-dotenv
+slugify
+python-slugify
+
+# Task Queue
+redis
+rq
+
+# Embeddings & Vector Search
+pgvector
+numpy
+requests
+
+# Text Processing
+markdown
+tiktoken
+PyYAML

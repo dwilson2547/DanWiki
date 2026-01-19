@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with pgvector extension for embeddings
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: wiki-postgres
+    environment:
+      POSTGRES_DB: wiki_db
+      POSTGRES_USER: wiki_user
+      POSTGRES_PASSWORD: wiki_password_dev_only
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wiki_user -d wiki_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wiki-network
+
+  # Redis for task queue
+  redis:
+    image: redis:7-alpine
+    container_name: wiki-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wiki-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  wiki-network:
+    driver: bridge

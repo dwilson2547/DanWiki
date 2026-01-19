@@ -1,0 +1,19 @@
+[Unit]
+Description=Wiki App RQ Worker %i
+After=network.target redis.service postgresql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/wiki-app
+Environment="FLASK_ENV=production"
+ExecStart=/var/www/wiki-app/venv/bin/python /var/www/wiki-app/worker.py
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/var/log/wiki-worker-%i.log
+StandardError=append:/var/log/wiki-worker-%i.log
+
+[Install]
+WantedBy=multi-user.target
