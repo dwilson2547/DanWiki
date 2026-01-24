@@ -54,7 +54,7 @@ Return a JSON array with technical tags:
   }}
 ]
 
-Return ONLY the JSON array."""
+Return ONLY the JSON array. Ensure the JSON is valid."""
 
 
 def format_prompt(

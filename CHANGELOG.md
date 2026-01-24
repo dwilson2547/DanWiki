@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-21
+
+### Added
+- **User Account Approval System**: Added administrator approval requirement for new user registrations
+  - New users must be approved by an administrator before they can log in
+  - Added `is_approved` field to User model (default: False for new registrations)
+  - Existing users automatically set to approved during migration
+  - Admin panel now displays pending user count in dashboard statistics
+  - New "Pending Approvals" page in admin panel for reviewing registrations
+  - Admins can approve or reject pending users with confirmation dialogs
+  - Registration page shows success message indicating pending approval status
+  - Login page displays appropriate error message for unapproved accounts
+  - Backend endpoints:
+    - `GET /api/admin/pending-users` - List pending user approvals
+    - `POST /api/admin/users/<id>/approve` - Approve a user
+    - `POST /api/admin/users/<id>/reject` - Reject and delete a pending user
+  - Frontend components:
+    - AdminPendingUsers page with approve/reject actions
+    - Dashboard stats card showing pending approval count
+    - Navigation link to pending approvals in admin sidebar
+
 ## [1.3.3] - 2026-01-19
 
 ### Changed

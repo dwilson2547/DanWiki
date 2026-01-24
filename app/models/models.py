@@ -37,6 +37,7 @@ class User(db.Model):
     avatar_url = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)  # System-wide admin
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval required
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), 
                           onupdate=lambda: datetime.now(timezone.utc))
@@ -100,6 +101,7 @@ class User(db.Model):
             'avatar_url': self.avatar_url,
             'is_active': self.is_active,
             'is_admin': self.is_admin,
+            'is_approved': self.is_approved,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
         if include_email:

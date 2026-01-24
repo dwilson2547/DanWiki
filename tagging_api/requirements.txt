@@ -23,3 +23,7 @@ httpx
 
 # Utilities
 python-dotenv
+
+# Testing (optional - only needed for test suite)
+# requests
+# pyyaml

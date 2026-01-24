@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Users, Menu, Home, ArrowLeft, BarChart3, Database, BookOpen } from 'lucide-react';
+import { Shield, Users, Menu, Home, ArrowLeft, BarChart3, Database, BookOpen, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UserMenu from '../components/UserMenu';
 
@@ -159,6 +159,26 @@ export default function AdminLayout() {
               >
                 <Users size={20} />
                 <span>User Management</span>
+              </Link>
+              
+              <Link 
+                to="/admin/pending-users"
+                className={`nav-item ${isActive('/admin/pending-users') ? 'active' : ''}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.375rem',
+                  textDecoration: 'none',
+                  color: isActive('/admin/pending-users') ? 'var(--primary)' : 'var(--text)',
+                  background: isActive('/admin/pending-users') ? 'var(--primary-light)' : 'transparent',
+                  marginBottom: '0.25rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <UserCheck size={20} />
+                <span>Pending Approvals</span>
               </Link>
               
               <Link 

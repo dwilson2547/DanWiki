@@ -52,7 +52,7 @@ Return a JSON array with this exact structure:
   }}
 ]
 
-Return ONLY the JSON array, no additional text."""
+Return ONLY the JSON array, no additional text. Ensure the JSON is valid."""
 
 
 def format_prompt(

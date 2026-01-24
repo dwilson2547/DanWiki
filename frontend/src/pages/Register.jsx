@@ -13,6 +13,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -40,13 +41,18 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await register({
+      const result = await register({
         username: formData.username,
         email: formData.email,
         password: formData.password,
         display_name: formData.display_name || formData.username
       });
-      navigate('/dashboard');
+      
+      if (result.pending_approval) {
+        setPendingApproval(true);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed');
     } finally {
@@ -61,12 +67,34 @@ export default function Register() {
           <div className="flex justify-center mb-4">
             <BookOpen size={48} style={{ color: 'var(--primary)' }} />
           </div>
-          <h1 className="auth-title">Create an account</h1>
-          <p className="auth-subtitle">Get started with your wiki</p>
+          
+          {pendingApproval ? (
+            <>
+              <h1 className="auth-title">Registration Successful!</h1>
+              <div className="alert alert-info" style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+                <p style={{ marginBottom: '0.5rem' }}>
+                  <strong>Your account has been created and is pending administrator approval.</strong>
+                </p>
+                <p style={{ fontSize: '0.875rem', margin: 0 }}>
+                  You'll be able to log in once an administrator approves your account. 
+                  This usually happens within 24 hours.
+                </p>
+              </div>
+              <Link to="/login" className="btn btn-primary w-full" style={{ marginTop: '1rem' }}>
+                Go to Login
+              </Link>
+              <p className="text-center mt-4 text-sm text-secondary">
+                <Link to="/">← Back to Home</Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="auth-title">Create an account</h1>
+              <p className="auth-subtitle">Get started with your wiki</p>
 
-          {error && (
-            <div className="alert alert-error">{error}</div>
-          )}
+              {error && (
+                <div className="alert alert-error">{error}</div>
+              )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -147,6 +175,8 @@ export default function Register() {
           <p className="text-center mt-2 text-sm text-secondary">
             <Link to="/">← Back to Home</Link>
           </p>
+            </>
+          )}
         </div>
       </div>
     </div>

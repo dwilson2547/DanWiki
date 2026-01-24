@@ -16,6 +16,7 @@ from models import SuggestedTag, AnalysisStats
 from prompts import get_template
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class LLMService:
@@ -122,7 +123,7 @@ class LLMService:
         # Generate response
         try:
             response_text = self._generate_response(messages)
-            logger.debug(f"Model response: {response_text[:500]}...")
+            logger.debug(f"Model response: {response_text}")
             
             # Parse tags from JSON response
             suggested_tags = self._parse_tags_from_response(
@@ -162,7 +163,7 @@ class LLMService:
             tokenize=False,
             add_generation_prompt=True
         )
-        
+
         # Tokenize
         inputs = self.tokenizer(
             formatted_input,
@@ -171,6 +172,8 @@ class LLMService:
             max_length=settings.max_input_tokens
         ).to(self.model.device)
         
+        logger.debug(settings.generation_config)
+
         # Generate
         with torch.no_grad():
             outputs = self.model.generate(
@@ -178,15 +181,15 @@ class LLMService:
                 **settings.generation_config,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
-        
+
         # Decode
         response = self.tokenizer.decode(
             outputs[0][inputs['input_ids'].shape[1]:],
             skip_special_tokens=True
         )
-        
+
         return response.strip()
-    
+
     def _parse_tags_from_response(
         self,
         response: str,
@@ -195,25 +198,10 @@ class LLMService:
         min_confidence: float
     ) -> list[SuggestedTag]:
         """Parse tags from the model's JSON response."""
-        # Extract JSON array from response
-        try:
-            # Try to find JSON array in the response
-            start_idx = response.find('[')
-            end_idx = response.rfind(']')
-            
-            if start_idx == -1 or end_idx == -1:
-                logger.warning("No JSON array found in response")
-                return []
-            
-            json_str = response[start_idx:end_idx + 1]
-            tag_data = json.loads(json_str)
-            
-            if not isinstance(tag_data, list):
-                logger.warning("Response is not a JSON array")
-                return []
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response: {e}")
+        # Extract JSON array from response (with best-effort recovery)
+        tag_data = self._extract_json_array(response)
+        if tag_data is None:
+            logger.warning("No JSON array found in response")
             logger.debug(f"Response was: {response}")
             return []
         
@@ -242,6 +230,43 @@ class LLMService:
                 continue
         
         return suggested_tags
+
+    def _extract_json_array(self, response: str) -> Optional[list]:
+        """Extract and parse a JSON array from a response, attempting recovery."""
+        start_idx = response.find('[')
+        if start_idx == -1:
+            return None
+
+        # First try: find a complete array
+        end_idx = response.rfind(']')
+        if end_idx != -1 and end_idx > start_idx:
+            try:
+                candidate = response[start_idx:end_idx + 1]
+                parsed = json.loads(candidate)
+                return parsed if isinstance(parsed, list) else None
+            except json.JSONDecodeError:
+                pass
+
+        # Recovery: attempt to trim to last complete object and close the array
+        tail = response[start_idx:]
+        last_obj_end = tail.rfind('}')
+        if last_obj_end == -1:
+            return None
+
+        # Try progressively earlier object endings until parse succeeds
+        search_pos = last_obj_end
+        while search_pos != -1:
+            candidate = tail[:search_pos + 1].rstrip()
+            candidate = candidate.rstrip(',')
+            if not candidate.endswith(']'):
+                candidate = candidate + ']'
+            try:
+                parsed = json.loads(candidate)
+                return parsed if isinstance(parsed, list) else None
+            except json.JSONDecodeError:
+                search_pos = tail.rfind('}', 0, search_pos)
+
+        return None
     
     def _find_matching_tag(
         self,

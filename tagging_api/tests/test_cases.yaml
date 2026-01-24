@@ -1,0 +1,230 @@
+# Test cases for tagging API
+# Each test case will be run through all available prompt templates
+
+test_cases:
+  - name: "Flask Tutorial"
+    fixture: "flask_tutorial.md"
+    title: "Getting Started with Flask"
+    existing_tags:
+      - name: "python"
+        color: "#3776AB"
+      - name: "web-development"
+        color: "#4CAF50"
+      - name: "backend"
+        color: "#FF5722"
+    context:
+      breadcrumbs:
+        - "Programming"
+        - "Python"
+        - "Web Frameworks"
+      wiki_name: "Development Wiki"
+    description: "Beginner tutorial on Flask web framework"
+    expected_tag_categories:
+      - "tutorial"
+      - "beginner"
+      - "flask"
+      - "routing"
+      - "templates"
+
+  - name: "Database Troubleshooting"
+    fixture: "database_troubleshooting.md"
+    title: "PostgreSQL Connection Timeout Issues"
+    existing_tags:
+      - name: "database"
+        color: "#336791"
+      - name: "postgresql"
+        color: "#336791"
+      - name: "troubleshooting"
+        color: "#F44336"
+      - name: "performance"
+        color: "#9C27B0"
+    context:
+      breadcrumbs:
+        - "DevOps"
+        - "Database"
+        - "PostgreSQL"
+      wiki_name: "Operations Wiki"
+    description: "Troubleshooting guide for PostgreSQL connection issues"
+    expected_tag_categories:
+      - "connection-pooling"
+      - "pgbouncer"
+      - "production"
+      - "timeout"
+
+  - name: "React Hooks Reference"
+    fixture: "react_hooks_reference.md"
+    title: "React Hooks Reference"
+    existing_tags:
+      - name: "react"
+        color: "#61DAFB"
+      - name: "javascript"
+        color: "#F7DF1E"
+      - name: "frontend"
+        color: "#4CAF50"
+      - name: "reference"
+        color: "#9E9E9E"
+    context:
+      breadcrumbs:
+        - "Programming"
+        - "JavaScript"
+        - "React"
+      wiki_name: "Frontend Docs"
+    description: "Complete API reference for React hooks"
+    expected_tag_categories:
+      - "hooks"
+      - "api-reference"
+      - "functional-components"
+      - "state-management"
+
+  - name: "Docker Compose Guide"
+    fixture: "docker_compose_guide.md"
+    title: "Docker Compose Guide"
+    existing_tags:
+      - name: "docker"
+        color: "#2496ED"
+      - name: "devops"
+        color: "#FF6B6B"
+      - name: "containers"
+        color: "#4CAF50"
+      - name: "infrastructure"
+        color: "#607D8B"
+    context:
+      breadcrumbs:
+        - "DevOps"
+        - "Containers"
+        - "Docker"
+      wiki_name: "Infrastructure Wiki"
+    description: "Comprehensive guide to Docker Compose for multi-container applications"
+    expected_tag_categories:
+      - "docker-compose"
+      - "orchestration"
+      - "microservices"
+      - "guide"
+
+  - name: "Machine Learning Concepts"
+    fixture: "machine_learning_concepts.md"
+    title: "Machine Learning Fundamental Concepts"
+    existing_tags:
+      - name: "machine-learning"
+        color: "#FF6F00"
+      - name: "ai"
+        color: "#9C27B0"
+      - name: "data-science"
+        color: "#3F51B5"
+      - name: "fundamentals"
+        color: "#795548"
+    context:
+      breadcrumbs:
+        - "Data Science"
+        - "Machine Learning"
+        - "Foundations"
+      wiki_name: "ML Learning Hub"
+    description: "Introduction to core machine learning concepts and terminology"
+    expected_tag_categories:
+      - "supervised-learning"
+      - "unsupervised-learning"
+      - "overfitting"
+      - "neural-networks"
+      - "concepts"
+
+  - name: "Team Onboarding"
+    fixture: "team_onboarding.md"
+    title: "New Team Member Onboarding"
+    existing_tags:
+      - name: "onboarding"
+        color: "#4CAF50"
+      - name: "hr"
+        color: "#FF9800"
+      - name: "documentation"
+        color: "#9E9E9E"
+      - name: "process"
+        color: "#607D8B"
+    context:
+      breadcrumbs:
+        - "Company"
+        - "HR"
+        - "Onboarding"
+      wiki_name: "Company Handbook"
+    description: "Complete onboarding guide for new engineering team members"
+    expected_tag_categories:
+      - "checklist"
+      - "new-hire"
+      - "engineering"
+      - "culture"
+      - "guide"
+
+  - name: "API Authentication"
+    fixture: "api_authentication.md"
+    title: "API Authentication Methods"
+    existing_tags:
+      - name: "security"
+        color: "#F44336"
+      - name: "api"
+        color: "#2196F3"
+      - name: "authentication"
+        color: "#FF5722"
+      - name: "backend"
+        color: "#795548"
+    context:
+      breadcrumbs:
+        - "Development"
+        - "API Design"
+        - "Security"
+      wiki_name: "API Documentation"
+    description: "Comprehensive overview of API authentication approaches"
+    expected_tag_categories:
+      - "oauth"
+      - "jwt"
+      - "api-key"
+      - "security-best-practices"
+      - "reference"
+
+  - name: "Marketing Campaign Report"
+    fixture: "marketing_report.md"
+    title: "Q3 2025 Marketing Campaign Results"
+    existing_tags:
+      - name: "marketing"
+        color: "#E91E63"
+      - name: "analytics"
+        color: "#3F51B5"
+      - name: "business"
+        color: "#009688"
+      - name: "quarterly-report"
+        color: "#FFC107"
+    context:
+      breadcrumbs:
+        - "Business"
+        - "Marketing"
+        - "Reports"
+      wiki_name: "Marketing Hub"
+    description: "Quarterly marketing performance analysis and recommendations"
+    expected_tag_categories:
+      - "campaign-results"
+      - "roi"
+      - "social-media"
+      - "performance-metrics"
+      - "report"
+
+# Test configuration
+test_config:
+  # API endpoint configuration
+  api_url: "http://localhost:8002"
+  api_token_env: "TAGGING_API_TOKEN"  # Will read from environment variable
+  
+  # Test options
+  max_tags: 10
+  min_confidence: 0.5
+  
+  # Prompt templates to test (empty = test all available)
+  prompt_templates: []  # Will use: detailed, quick, technical, general
+  
+  # Output configuration
+  save_raw_json: true
+  generate_markdown_report: true
+  generate_html_report: false
+  
+  # Timeouts
+  request_timeout: 60  # seconds per request
+  
+  # Rate limiting
+  delay_between_requests: 0.5  # seconds

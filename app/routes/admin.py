@@ -31,6 +31,7 @@ class UserUpdateSchema(Schema):
     email = fields.Email()
     is_active = fields.Bool()
     is_admin = fields.Bool()
+    is_approved = fields.Bool()
 
 
 user_update_schema = UserUpdateSchema()
@@ -83,6 +84,7 @@ def list_users():
             'avatar_url': user.avatar_url,
             'is_active': user.is_active,
             'is_admin': user.is_admin,
+            'is_approved': user.is_approved,
             'created_at': user.created_at.isoformat() if user.created_at else None,
             'stats': {
                 'owned_wikis': owned_wikis_count,
@@ -123,6 +125,7 @@ def get_user(user_id):
             'avatar_url': user.avatar_url,
             'is_active': user.is_active,
             'is_admin': user.is_admin,
+            'is_approved': user.is_approved,
             'created_at': user.created_at.isoformat() if user.created_at else None,
             'updated_at': user.updated_at.isoformat() if user.updated_at else None,
             'stats': {
@@ -167,6 +170,8 @@ def update_user(user_id):
         user.is_active = data['is_active']
     if 'is_admin' in data:
         user.is_admin = data['is_admin']
+    if 'is_approved' in data:
+        user.is_approved = data['is_approved']
     
     db.session.commit()
     
@@ -178,7 +183,8 @@ def update_user(user_id):
             'email': user.email,
             'display_name': user.display_name,
             'is_active': user.is_active,
-            'is_admin': user.is_admin
+            'is_admin': user.is_admin,
+            'is_approved': user.is_approved
         }
     }), 200
 
@@ -205,6 +211,99 @@ def delete_user(user_id):
     return jsonify({'message': 'User deactivated successfully'}), 200
 
 
+@admin_bp.route('/pending-users', methods=['GET'])
+@jwt_required()
+@require_admin
+def list_pending_users():
+    """Get all users pending approval."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    
+    query = User.query.filter_by(is_approved=False)
+    
+    # Get total count
+    total = query.count()
+    
+    # Paginate
+    users = query.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    user_list = []
+    for user in users.items:
+        user_list.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'display_name': user.display_name,
+            'avatar_url': user.avatar_url,
+            'created_at': user.created_at.isoformat() if user.created_at else None,
+        })
+    
+    return jsonify({
+        'users': user_list,
+        'pagination': {
+            'page': page,
+            'per_page': per_page,
+            'total': total,
+            'pages': users.pages
+        }
+    }), 200
+
+
+@admin_bp.route('/users/<int:user_id>/approve', methods=['POST'])
+@jwt_required()
+@require_admin
+def approve_user(user_id):
+    """Approve a pending user."""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if user.is_approved:
+        return jsonify({'error': 'User is already approved'}), 400
+    
+    user.is_approved = True
+    db.session.commit()
+    
+    logger.info(f"Admin approved user {user_id} ({user.username})")
+    
+    return jsonify({
+        'message': 'User approved successfully',
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'is_approved': user.is_approved
+        }
+    }), 200
+
+
+@admin_bp.route('/users/<int:user_id>/reject', methods=['POST'])
+@jwt_required()
+@require_admin
+def reject_user(user_id):
+    """Reject and delete a pending user."""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    if user.is_approved:
+        return jsonify({'error': 'Cannot reject an already approved user. Use delete instead.'}), 400
+    
+    username = user.username
+    
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        logger.info(f"Admin rejected and deleted pending user {user_id} ({username})")
+        return jsonify({'message': f'User "{username}" rejected and deleted'}), 200
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to reject user {user_id}: {e}")
+        return jsonify({'error': f'Failed to reject user: {str(e)}'}), 500
+
+
 @admin_bp.route('/stats', methods=['GET'])
 @jwt_required()
 @require_admin
@@ -213,6 +312,7 @@ def get_stats():
     total_users = User.query.count()
     active_users = User.query.filter_by(is_active=True).count()
     admin_users = User.query.filter_by(is_admin=True).count()
+    pending_users = User.query.filter_by(is_approved=False).count()
     
     total_wikis = Wiki.query.count()
     public_wikis = Wiki.query.filter_by(is_public=True).count()
@@ -230,7 +330,8 @@ def get_stats():
             'users': {
                 'total': total_users,
                 'active': active_users,
-                'admins': admin_users
+                'admins': admin_users,
+                'pending_approval': pending_users
             },
             'wikis': {
                 'total': total_wikis,

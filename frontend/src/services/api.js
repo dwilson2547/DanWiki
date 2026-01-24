@@ -180,6 +180,11 @@ export const adminAPI = {
   updateUser: (userId, data) => api.patch(`/admin/users/${userId}`, data),
   deleteUser: (userId) => api.delete(`/admin/users/${userId}`),
   
+  // Pending user approvals
+  listPendingUsers: (params = {}) => api.get('/admin/pending-users', { params }),
+  approveUser: (userId) => api.post(`/admin/users/${userId}/approve`),
+  rejectUser: (userId) => api.post(`/admin/users/${userId}/reject`),
+  
   // Embeddings management
   listPendingEmbeddings: (params = {}) => api.get('/admin/embeddings/pending', { params }),
   generatePageEmbedding: (pageId) => api.post(`/admin/embeddings/generate/${pageId}`),

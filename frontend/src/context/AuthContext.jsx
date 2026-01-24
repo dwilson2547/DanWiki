@@ -44,13 +44,19 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     const response = await authAPI.register(userData);
-    const { user, access_token, refresh_token } = response.data;
+    const { user, access_token, refresh_token, pending_approval } = response.data;
     
+    // If account is pending approval, don't log them in
+    if (pending_approval) {
+      return { user, pending_approval: true };
+    }
+    
+    // Otherwise, log them in (for backwards compatibility or special cases)
     localStorage.setItem('access_token', access_token);
     localStorage.setItem('refresh_token', refresh_token);
     setUser(user);
     
-    return user;
+    return { user, pending_approval: false };
   };
 
   const logout = () => {

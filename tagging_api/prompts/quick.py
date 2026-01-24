@@ -10,7 +10,7 @@ SYSTEM_PROMPT = """You are a wiki tagging assistant. Generate 3-7 relevant tags 
 Rules:
 - Tags are lowercase with hyphens (e.g., "web-dev")
 - Prefer existing tags to avoid duplicates
-- Return JSON only"""
+- Return JSON only. Ensure response is a valid JSON array and follow the structure below."""
 
 USER_PROMPT_TEMPLATE = """Title: {title}
 Path: {breadcrumbs}

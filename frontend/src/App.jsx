@@ -17,6 +17,7 @@ import SemanticSearchPage from './pages/SemanticSearchPage';
 import AdminLayout from './pages/AdminLayout';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
+import AdminPendingUsers from './pages/AdminPendingUsers';
 import EmbeddingsManagement from './pages/EmbeddingsManagement';
 import WikiManagement from './pages/WikiManagement';
 import NotFound from './pages/NotFound';
@@ -125,6 +126,7 @@ function AppRoutes() {
       }>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="pending-users" element={<AdminPendingUsers />} />
         <Route path="wikis" element={<WikiManagement />} />
         <Route path="embeddings" element={<EmbeddingsManagement />} />
       </Route>

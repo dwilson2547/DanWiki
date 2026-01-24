@@ -40,26 +40,22 @@ def register():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already exists'}), 409
     
-    # Create new user
+    # Create new user (pending approval)
     user = User(
         username=data['username'],
         email=data['email'],
-        display_name=data.get('display_name', data['username'])
+        display_name=data.get('display_name', data['username']),
+        is_approved=False  # Requires admin approval
     )
     user.set_password(data['password'])
     
     db.session.add(user)
     db.session.commit()
     
-    # Generate tokens
-    access_token = create_access_token(identity=str(user.id), fresh=True)
-    refresh_token = create_refresh_token(identity=str(user.id))
-    
     return jsonify({
-        'message': 'User registered successfully',
+        'message': 'Registration successful. Your account is pending administrator approval.',
         'user': user.to_dict(include_email=True),
-        'access_token': access_token,
-        'refresh_token': refresh_token
+        'pending_approval': True
     }), 201
 
 
@@ -81,6 +77,9 @@ def login():
     
     if not user.is_active:
         return jsonify({'error': 'Account is disabled'}), 403
+    
+    if not user.is_approved:
+        return jsonify({'error': 'Your account is pending administrator approval'}), 403
     
     # Generate tokens
     access_token = create_access_token(identity=str(user.id), fresh=True)
