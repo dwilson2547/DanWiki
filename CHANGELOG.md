@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-01-24
+
+### Added
+- **Vector Search Recall Tuning**: Added configurable IVFFlat probe setting for pgvector searches
+  - New `IVFFLAT_PROBES` config/env setting to improve recall when using IVFFlat indexes
+  - Applied `SET LOCAL ivfflat.probes` in semantic and hybrid search queries
+  - Rationale: higher probes increase recall and reduce missed matches when thresholding
+
+### Changed
+- **Semantic Similarity Scoring**: Fixed cosine similarity scaling in search queries
+  - Adjusted similarity computation to $1 - (distance / 2)$ for pgvector cosine distance
+  - Keeps scores in the expected $[0,1]$ range, matching API thresholds
+  - Rationale: previous scaling forced lower thresholds and under-scored matches
+
+- **Chunking Defaults & Granularity**: Standardized default chunk size to 256 tokens
+  - `MAX_CHUNK_TOKENS` default set to 256 to match embedding model truncation limits
+  - Removed `EMBEDDING_MAX_SEQ_LENGTH` variable in favor of a single chunk size source
+  - Rationale: reduces truncation and aligns chunk size with embedding model context
+
+- **Tokenizer Alignment**: Chunker now uses the sentence-transformers tokenizer for token counting
+  - Uses model tokenizer via `transformers` with fallback to tiktoken/word-count
+  - Rationale: token counts now match the embedding model’s true tokenization behavior
+
+- **Heading Context Accuracy**: Chunk heading paths now derive from paragraph start offsets
+  - Avoids `find()`-based position errors on repeated text or overlaps
+  - Rationale: improves metadata correctness for search results and UI context
+
+- **Documentation Updates**: Updated search docs and env examples to reflect new defaults
+  - Chunk size defaults, probe tuning, and tokenizer behavior documented for operators
+
+### Fixed
+- **Search Threshold Sensitivity**: Corrected similarity scaling to prevent overly low thresholds
+  - Results now align with documented $0$–$1$ similarity range
+
+### Technical
+- **Dependencies**: Added `transformers` to support model-accurate token counting
+
 ## [1.4.0] - 2026-01-21
 
 ### Added

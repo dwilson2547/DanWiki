@@ -58,7 +58,7 @@ python tests/test_slug_uniqueness.py  # Run specific test
 ### AI/ML Components
 - Embedding model: `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions)
 - Vector storage: pgvector in `page_embeddings` table
-- Chunking: ~400 tokens with 50 token overlap
+- Chunking: configurable (default 256 tokens with 50 token overlap)
 - Tagging: LLM-based with configurable prompts in `/tagging_api/prompts/`
 
 ## Key Patterns

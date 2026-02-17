@@ -136,7 +136,7 @@ REDIS_URL=redis://localhost:6379/0
 # GPU Embedding Service
 EMBEDDING_SERVICE_URL=http://your-gpu-machine:8001
 EMBEDDING_DIMENSION=384
-MAX_CHUNK_TOKENS=400
+MAX_CHUNK_TOKENS=256
 CHUNK_OVERLAP_TOKENS=50
 ```
 
@@ -146,7 +146,7 @@ CHUNK_OVERLAP_TOKENS=50
 
 1. **Page Created/Updated** → Task queued
 2. **RQ Worker** picks up task →
-3. **Text Chunking** splits long docs into ~400 token chunks
+3. **Text Chunking** splits long docs into ~256 token chunks
 4. **GPU Service** generates embeddings for each chunk
 5. **Database** stores embeddings with pgvector
 6. **Search** uses vector similarity (cosine distance)

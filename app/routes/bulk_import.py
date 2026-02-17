@@ -7,10 +7,15 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 
+from app.tasks import enqueue_page_embedding
+
 from app.models import db, User, Wiki, Page
 from app.services.archive_import import ArchiveImporter
+import logging
 
 bulk_import_bp = Blueprint('bulk_import', __name__)
+
+logger = logging.getLogger(__name__)
 
 
 def allowed_archive_file(filename: str) -> bool:
@@ -85,6 +90,14 @@ def import_new_wiki():
         
         # Commit the wiki and import results
         db.session.commit()
+        
+        pending_pages = Page.query.filter_by(wiki_id=wiki.id, embeddings_status='pending').all()
+        for page in pending_pages:
+            try:
+                job = enqueue_page_embedding(page.id)
+            except Exception as e:
+                current_app.logger.error(f"Failed to enqueue embedding job for page {page.id}: {str(e)}")
+                logger.info(f"Enqueued embedding task for page {page.id}, job: {job.id}")
         
         return jsonify({
             'message': 'Wiki created and import completed',
@@ -164,6 +177,14 @@ def import_to_existing_wiki(wiki_id):
         
         # Commit changes
         db.session.commit()
+        
+        pending_pages = Page.query.filter_by(wiki_id=wiki.id, embeddings_status='pending').all()
+        for page in pending_pages:
+            try:
+                job = enqueue_page_embedding(page.id)
+            except Exception as e:
+                current_app.logger.error(f"Failed to enqueue embedding job for page {page.id}: {str(e)}")
+                logger.info(f"Enqueued embedding task for page {page.id}, job: {job.id}")
         
         return jsonify({
             'message': 'Import completed',

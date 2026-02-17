@@ -44,11 +44,11 @@ class Settings(BaseSettings):
     temperature: float = 0.3
     top_p: float = 0.9
     top_k: int = 50
-    max_new_tokens: int = 300
+    max_new_tokens: int = 1000
     repetition_penalty: float = 1.1
     
     # Processing limits
-    max_input_tokens: int = 10000
+    max_input_tokens: int = 6000
     max_tags_per_page: int = 10
     min_confidence: float = 0.0
     batch_size: int = 1  # Process one at a time to manage GPU memory
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = 86400  # 24 hours
     
     # Timeouts and retries
-    inference_timeout_seconds: int = 60
+    inference_timeout_seconds: int = 30
     max_retries: int = 3
     retry_delay_seconds: int = 5
     

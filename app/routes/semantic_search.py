@@ -97,9 +97,13 @@ def semantic_search():
     embedding_dim = current_app.config.get('EMBEDDING_DIMENSION', 384)
     
     try:
+        ivfflat_probes = current_app.config.get('IVFFLAT_PROBES')
+        if ivfflat_probes is not None:
+            db.session.execute(text('SET LOCAL ivfflat.probes = :probes'), {'probes': ivfflat_probes})
+
         # Build the query
         # Note: pgvector's <=> operator returns cosine distance (0 = identical, 2 = opposite)
-        # We want cosine similarity, so: similarity = 1 - (distance / 2)
+        # We want cosine similarity in [0,1], so: similarity = 1 - (distance / 2)
         similarity_query = text("""
             SELECT 
                 pe.id as embedding_id,
@@ -113,13 +117,13 @@ def semantic_search():
                 p.wiki_id,
                 w.name as wiki_name,
                 w.slug as wiki_slug,
-                1 - (pe.embedding <=> :query_embedding) as similarity_score
+                                1 - ((pe.embedding <=> :query_embedding) / 2.0) as similarity_score
             FROM page_embeddings pe
             JOIN pages p ON pe.page_id = p.id
             JOIN wikis w ON p.wiki_id = w.id
             WHERE p.wiki_id = ANY(:wiki_ids)
               AND p.is_published = true
-              AND (1 - (pe.embedding <=> :query_embedding)) >= :threshold
+                            AND (1 - ((pe.embedding <=> :query_embedding) / 2.0)) >= :threshold
             ORDER BY pe.embedding <=> :query_embedding
             LIMIT :limit OFFSET :offset
         """)
@@ -169,7 +173,7 @@ def semantic_search():
             JOIN pages p ON pe.page_id = p.id
             WHERE p.wiki_id = ANY(:wiki_ids)
               AND p.is_published = true
-              AND (1 - (pe.embedding <=> :query_embedding)) >= :threshold
+              AND (1 - ((pe.embedding <=> :query_embedding) / 2.0)) >= :threshold
         """)
         
         count_result = db.session.execute(
@@ -266,6 +270,10 @@ def hybrid_search():
     try:
         embedding_client = get_embedding_client()
         query_embedding = embedding_client.generate_embeddings(query, normalize=True)
+
+        ivfflat_probes = current_app.config.get('IVFFLAT_PROBES')
+        if ivfflat_probes is not None:
+            db.session.execute(text('SET LOCAL ivfflat.probes = :probes'), {'probes': ivfflat_probes})
         
         semantic_query = text("""
             SELECT DISTINCT ON (p.id)
@@ -276,7 +284,7 @@ def hybrid_search():
                 p.wiki_id,
                 w.name as wiki_name,
                 w.slug as wiki_slug,
-                MAX(1 - (pe.embedding <=> :query_embedding)) as semantic_score
+                MAX(1 - ((pe.embedding <=> :query_embedding) / 2.0)) as semantic_score
             FROM pages p
             JOIN page_embeddings pe ON p.id = pe.page_id
             JOIN wikis w ON p.wiki_id = w.id

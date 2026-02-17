@@ -211,7 +211,7 @@ cd frontend && npm test    # Frontend tests
 - Embedding generation runs in background (RQ worker)
 - Image uploads limited to 16MB
 - Vector search uses HNSW index on embeddings (configure in production)
-- Chunk size: ~400 tokens with 50 token overlap
+- Chunk size: configurable (default 256 tokens with 50 token overlap)
 - Batch embeddings when possible
 
 ## Testing Approach

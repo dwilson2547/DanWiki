@@ -396,7 +396,7 @@ The application includes a complete semantic search implementation using locally
 - **Vector Database**: PostgreSQL with pgvector extension for efficient similarity search
 - **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2 (384 dimensions)
 - **Background Processing**: Redis Queue (RQ) for asynchronous embedding generation
-- **Intelligent Chunking**: Markdown-aware text splitting with ~400 token chunks and 50 token overlap
+- **Intelligent Chunking**: Markdown-aware text splitting with configurable chunk size (default 256 tokens) and 50 token overlap
 - **GPU Acceleration**: Standalone Flask microservice for fast embedding generation
 - **Search Modes**:
   - **AI Search**: Pure vector similarity search

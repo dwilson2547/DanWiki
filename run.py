@@ -38,7 +38,8 @@ def create_admin():
         username=username,
         email=email,
         display_name='Administrator',
-        is_admin=True
+        is_admin=True,
+        is_approved=True
     )
     admin.set_password(password)
     
@@ -59,7 +60,8 @@ def seed_demo():
         demo_user = User(
             username='demo',
             email='demo@example.com',
-            display_name='Demo User'
+            display_name='Demo User',
+            is_approved=True
         )
         demo_user.set_password('demo1234')
         db.session.add(demo_user)

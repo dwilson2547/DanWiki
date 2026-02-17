@@ -39,10 +39,11 @@ class Config:
     EMBEDDING_SERVICE_URL = os.getenv('EMBEDDING_SERVICE_URL', 'http://localhost:8001')
     EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', 'sentence-transformers/all-MiniLM-L6-v2')
     EMBEDDING_DIMENSION = int(os.getenv('EMBEDDING_DIMENSION', '384'))
-    MAX_CHUNK_TOKENS = int(os.getenv('MAX_CHUNK_TOKENS', '400'))
+    MAX_CHUNK_TOKENS = int(os.getenv('MAX_CHUNK_TOKENS', '256'))
     CHUNK_OVERLAP_TOKENS = int(os.getenv('CHUNK_OVERLAP_TOKENS', '50'))
     EMBEDDING_BATCH_SIZE = int(os.getenv('EMBEDDING_BATCH_SIZE', '32'))
     EMBEDDING_REQUEST_TIMEOUT = int(os.getenv('EMBEDDING_REQUEST_TIMEOUT', '30'))
+    IVFFLAT_PROBES = int(os.getenv('IVFFLAT_PROBES', '10'))
     
     @property
     def all_allowed_extensions(self):
