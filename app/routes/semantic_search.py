@@ -44,157 +44,108 @@ def get_accessible_wiki_ids(user_id: int) -> List[int]:
 @semantic_search_bp.route('/semantic', methods=['GET'])
 @jwt_required()
 def semantic_search():
-    """
-    Semantic search across page embeddings using vector similarity.
-    
-    Query params:
-    - q: search query (required)
-    - wiki_id: limit to specific wiki (optional)
-    - limit: max results (default 20, max 100)
-    - offset: pagination offset (default 0)
-    - threshold: minimum similarity score 0-1 (default 0.5)
-    
-    Returns:
-        List of matching page chunks with similarity scores
-    """
     current_user_id = int(get_jwt_identity())
-    
+
     query = request.args.get('q', '').strip()
     if not query:
         return jsonify({'error': 'Search query required'}), 400
-    
+
     wiki_id = request.args.get('wiki_id', type=int)
     limit = min(request.args.get('limit', 20, type=int), 100)
-    offset = request.args.get('offset', 0, type=int)
-    threshold = float(request.args.get('threshold', 0.5))
-    
-    # Get accessible wikis
+    threshold = float(request.args.get('threshold', 0.3))
+
     accessible_wiki_ids = get_accessible_wiki_ids(current_user_id)
-    
     if not accessible_wiki_ids:
-        return jsonify({'results': [], 'total': 0}), 200
-    
-    # If specific wiki requested, verify access
+        return jsonify({'results': [], 'has_more': False}), 200
+
     if wiki_id:
         if wiki_id not in accessible_wiki_ids:
             return jsonify({'error': 'Wiki not accessible'}), 403
         accessible_wiki_ids = [wiki_id]
-    
-    # Generate embedding for the query
+
     try:
         embedding_client = get_embedding_client()
         query_embedding = embedding_client.generate_embeddings(query, normalize=True)
-        logger.info(f"Generated query embedding for: {query[:50]}")
     except EmbeddingServiceError as e:
         logger.error(f"Failed to generate query embedding: {e}")
         return jsonify({'error': 'Embedding service unavailable', 'details': str(e)}), 503
-    
-    # Perform vector similarity search
-    # Using cosine similarity via <=> operator (pgvector)
-    # The distance operator returns smaller values for more similar vectors
-    # We convert to similarity score: similarity = 1 - distance
-    
-    embedding_dim = current_app.config.get('EMBEDDING_DIMENSION', 384)
-    
+
     try:
         ivfflat_probes = current_app.config.get('IVFFLAT_PROBES')
         if ivfflat_probes is not None:
-            db.session.execute(text('SET LOCAL ivfflat.probes = :probes'), {'probes': ivfflat_probes})
+            db.session.execute(
+                text('SET LOCAL ivfflat.probes = :probes'),
+                {'probes': ivfflat_probes}
+            )
 
-        # Build the query
-        # Note: pgvector's <=> operator returns cosine distance (0 = identical, 2 = opposite)
-        # We want cosine similarity in [0,1], so: similarity = 1 - (distance / 2)
         similarity_query = text("""
-            SELECT 
-                pe.id as embedding_id,
-                pe.page_id,
-                pe.chunk_index,
-                pe.chunk_text,
-                pe.heading_path,
-                pe.token_count,
-                p.title as page_title,
-                p.slug as page_slug,
-                p.wiki_id,
-                w.name as wiki_name,
-                w.slug as wiki_slug,
-                                1 - ((pe.embedding <=> :query_embedding) / 2.0) as similarity_score
-            FROM page_embeddings pe
-            JOIN pages p ON pe.page_id = p.id
-            JOIN wikis w ON p.wiki_id = w.id
-            WHERE p.wiki_id = ANY(:wiki_ids)
-              AND p.is_published = true
-                            AND (1 - ((pe.embedding <=> :query_embedding) / 2.0)) >= :threshold
-            ORDER BY pe.embedding <=> :query_embedding
-            LIMIT :limit OFFSET :offset
+            SELECT * FROM (
+                SELECT DISTINCT ON (p.id)
+                    p.id        AS page_id,
+                    p.title     AS page_title,
+                    p.slug      AS page_slug,
+                    p.wiki_id,
+                    w.name      AS wiki_name,
+                    w.slug      AS wiki_slug,
+                    pe.chunk_text AS excerpt,
+                    pe.heading_path,
+                    1 - ((pe.embedding <=> :query_embedding) / 2.0) AS similarity_score
+                FROM page_embeddings pe
+                JOIN pages p ON pe.page_id = p.id
+                JOIN wikis w ON p.wiki_id = w.id
+                WHERE p.wiki_id = ANY(:wiki_ids)
+                  AND p.is_published = TRUE
+                ORDER BY p.id, pe.embedding <=> :query_embedding
+            ) best_per_page
+            WHERE similarity_score >= :threshold
+            ORDER BY similarity_score DESC
+            LIMIT :limit_plus_one
         """)
-        
-        result = db.session.execute(
+
+        rows = db.session.execute(
             similarity_query,
             {
                 'query_embedding': str(query_embedding),
                 'wiki_ids': accessible_wiki_ids,
                 'threshold': threshold,
-                'limit': limit,
-                'offset': offset
+                'limit_plus_one': limit + 1,
             }
-        )
-        
-        rows = result.fetchall()
-        
-        # Format results
-        results = []
-        seen_pages = set()
-        
-        for row in rows:
-            result_dict = {
-                'embedding_id': row[0],
-                'page_id': row[1],
-                'chunk_index': row[2],
-                'chunk_text': row[3],
-                'heading_path': row[4],
-                'token_count': row[5],
-                'page_title': row[6],
-                'page_slug': row[7],
-                'wiki_id': row[8],
-                'wiki_name': row[9],
-                'wiki_slug': row[10],
-                'similarity_score': float(row[11]),
-                'page_url': f"/wikis/{row[8]}/pages/{row[1]}"
-            }
-            
-            results.append(result_dict)
-            seen_pages.add(row[1])
-        
-        # Get total count (approximate for performance)
-        # In production, you might want to cache this or use estimates
-        count_query = text("""
-            SELECT COUNT(DISTINCT pe.page_id)
-            FROM page_embeddings pe
-            JOIN pages p ON pe.page_id = p.id
-            WHERE p.wiki_id = ANY(:wiki_ids)
-              AND p.is_published = true
-              AND (1 - ((pe.embedding <=> :query_embedding) / 2.0)) >= :threshold
-        """)
-        
-        count_result = db.session.execute(
-            count_query,
+        ).fetchall()
+
+        has_more = len(rows) > limit
+        rows = rows[:limit]
+
+        results = [
             {
-                'query_embedding': str(query_embedding),
-                'wiki_ids': accessible_wiki_ids,
-                'threshold': threshold
+                'page_id': row.page_id,
+                'page_title': row.page_title,
+                'page_slug': row.page_slug,
+                'wiki_id': row.wiki_id,
+                'wiki_name': row.wiki_name,
+                'wiki_slug': row.wiki_slug,
+                'excerpt': row.excerpt,
+                'heading_path': row.heading_path,
+                'similarity_score': float(row.similarity_score),
+                'page_url': f'/wikis/{row.wiki_id}/pages/{row.page_id}',
             }
-        )
-        total_pages = count_result.scalar() or 0
-        
+            for row in rows
+        ]
+
+        if results:
+            max_score = max(r['similarity_score'] for r in results)
+            for r in results:
+                r['relative_score'] = (
+                    round((r['similarity_score'] / max_score) * 100, 1)
+                    if max_score > 0 else 0.0
+                )
+
         return jsonify({
             'results': results,
-            'total_chunks': len(results),
-            'total_pages': total_pages,
-            'unique_pages': len(seen_pages),
+            'has_more': has_more,
             'query': query,
-            'threshold': threshold
+            'threshold': threshold,
         }), 200
-        
+
     except Exception as e:
         logger.error(f"Semantic search failed: {e}", exc_info=True)
         return jsonify({'error': 'Search failed', 'details': str(e)}), 500
