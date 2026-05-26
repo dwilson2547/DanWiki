@@ -31,9 +31,14 @@ def create_app(config_name: str = None) -> Flask:
     migrate.init_app(app, db)
     
     # Configure CORS - adjust origins for production
+    cors_origins = os.getenv(
+        'CORS_ORIGINS',
+        'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000'
+    ).split(',')
+
     CORS(app, resources={
         r"/api/*": {
-            "origins": ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000"],
+            "origins": cors_origins,
             "methods": ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization"],
             "supports_credentials": True
