@@ -8,9 +8,9 @@ from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import text
 import logging
-from typing import List, Dict
+from typing import List
 
-from app.models import db, User, Wiki, Page, PageEmbedding
+from app.models import db, User, Wiki, Page
 from app.services.embeddings import get_embedding_client, EmbeddingServiceError
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def semantic_search():
                     p.wiki_id,
                     w.name      AS wiki_name,
                     w.slug      AS wiki_slug,
-                    pe.chunk_text AS excerpt,
+                    pe.chunk_text AS chunk_text,
                     pe.heading_path,
                     1 - ((pe.embedding <=> :query_embedding) / 2.0) AS similarity_score
                 FROM page_embeddings pe
@@ -123,7 +123,7 @@ def semantic_search():
                 'wiki_id': row.wiki_id,
                 'wiki_name': row.wiki_name,
                 'wiki_slug': row.wiki_slug,
-                'excerpt': row.excerpt,
+                'chunk_text': row.chunk_text,
                 'heading_path': row.heading_path,
                 'similarity_score': float(row.similarity_score),
                 'page_url': f'/wikis/{row.wiki_id}/pages/{row.page_id}',

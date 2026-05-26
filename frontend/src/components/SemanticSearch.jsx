@@ -247,17 +247,17 @@ export default function SemanticSearch({
                       <BookOpen size={16} className="text-primary" />
                       <h4 className="result-title">{result.page_title || result.title}</h4>
                     </div>
-                    {(result.similarity_score || result.combined_score) && (
+                    {result.relative_score != null && (
                       <div className="result-score">
-                        <div 
-                          className="score-bar" 
-                          style={{ 
-                            width: `${(result.similarity_score || result.combined_score || 0) * 100}%`,
-                            background: `hsl(${(result.similarity_score || result.combined_score) * 120}, 70%, 50%)`
+                        <div
+                          className="score-bar"
+                          style={{
+                            width: `${result.relative_score}%`,
+                            background: `hsl(${result.relative_score * 1.2}, 70%, 50%)`
                           }}
                         />
                         <span className="score-text">
-                          {((result.similarity_score || result.combined_score || 0) * 100).toFixed(0)}%
+                          {result.relative_score.toFixed(0)}%
                         </span>
                       </div>
                     )}
