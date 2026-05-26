@@ -31,10 +31,14 @@ def create_app(config_name: str = None) -> Flask:
     migrate.init_app(app, db)
     
     # Configure CORS - adjust origins for production
-    cors_origins = os.getenv(
-        'CORS_ORIGINS',
-        'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000'
-    ).split(',')
+    cors_origins = [
+        origin.strip()
+        for origin in os.getenv(
+            'CORS_ORIGINS',
+            'http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000'
+        ).split(',')
+        if origin.strip()
+    ]
 
     CORS(app, resources={
         r"/api/*": {
