@@ -48,3 +48,19 @@ def test_heading_path_still_stored_separately(chunker):
     for chunk in install_chunks:
         assert chunk['heading_path'] == 'Installation'
         assert '[Installation]' in chunk['chunk_text']
+
+
+def test_sibling_headings_do_not_nest():
+    # Use a small max_tokens so Setup and Usage sections end up in separate chunks.
+    small_chunker = TextChunker(
+        max_tokens=10,
+        overlap_tokens=2,
+        model_name='sentence-transformers/all-MiniLM-L6-v2'
+    )
+    content = "## Setup\n\nInstall deps.\n\n## Usage\n\nRun the server."
+    chunks = small_chunker.chunk_page("Guide", content)
+    usage_chunks = [c for c in chunks if 'Usage' in c.get('heading_path', '')]
+    assert len(usage_chunks) > 0
+    for chunk in usage_chunks:
+        assert chunk['heading_path'] == 'Usage', f"Expected 'Usage', got '{chunk['heading_path']}'"
+        assert '[Setup' not in chunk['chunk_text']

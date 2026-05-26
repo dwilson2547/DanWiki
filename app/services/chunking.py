@@ -214,7 +214,9 @@ class TextChunker:
             content_pos = get_first_content_pos(chunk_parts)
             heading_path = self.get_heading_path(headings, content_pos + 1)
             if heading_path:
-                text = f"[{heading_path}]\n\n{text}"
+                prefix = f"[{heading_path}]\n\n"
+                tokens += self.count_tokens(prefix)
+                text = prefix + text
             chunks.append({
                 'chunk_index': chunk_index,
                 'chunk_text': text,
