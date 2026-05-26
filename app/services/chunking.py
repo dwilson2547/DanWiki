@@ -107,22 +107,24 @@ class TextChunker:
         """
         # Find all headings before this position
         relevant_headings = [(level, heading) for level, heading, pos in headings if pos < position]
-        
+
         if not relevant_headings:
             return ""
-        
-        # Build hierarchical path
-        path = []
-        current_level = 0
-        
+
+        # Build hierarchical path using a level-keyed dict so sibling headings
+        # replace rather than nest under each other.
+        level_map: Dict[int, str] = {}
+
         for level, heading in relevant_headings:
-            if level <= current_level:
-                # Pop back to appropriate level
-                path = path[:level-1]
-            path.append(heading)
-            current_level = level
-        
-        return " > ".join(path)
+            # Remove all deeper levels when a heading at this level (or higher)
+            # is encountered — siblings and parents reset deeper context.
+            for k in list(level_map.keys()):
+                if k >= level:
+                    del level_map[k]
+            level_map[level] = heading
+
+        # Reconstruct path in level order
+        return " > ".join(level_map[k] for k in sorted(level_map))
     
     def split_by_paragraphs(self, text: str) -> List[Dict[str, any]]:
         """Split text by paragraphs while preserving code blocks and positions."""
@@ -196,7 +198,31 @@ class TextChunker:
 
         def join_chunk_text(chunk_parts: List[Dict[str, any]]) -> str:
             return ''.join(part['text'] for part in chunk_parts)
-        
+
+        def get_first_content_pos(chunk_parts: List[Dict[str, any]]) -> int:
+            """Return the position of the first non-heading, non-title part."""
+            for part in chunk_parts:
+                if part.get('start_pos') is not None and not part['text'].lstrip().startswith('#'):
+                    return int(part['start_pos'])
+            # Fallback: first known position + 1
+            return get_chunk_start_pos(chunk_parts) + 1
+
+        def finalize_chunk(text: str, chunk_parts: List[Dict[str, any]], tokens: int) -> None:
+            nonlocal chunk_index
+            # Use the first non-heading content position + 1 so that a heading
+            # at exactly that position is included in the path.
+            content_pos = get_first_content_pos(chunk_parts)
+            heading_path = self.get_heading_path(headings, content_pos + 1)
+            if heading_path:
+                text = f"[{heading_path}]\n\n{text}"
+            chunks.append({
+                'chunk_index': chunk_index,
+                'chunk_text': text,
+                'heading_path': heading_path,
+                'token_count': tokens
+            })
+            chunk_index += 1
+
         # Include title in first chunk
         title_prefix = f"# {page_title}\n\n"
         current_chunk.append({'text': title_prefix, 'start_pos': None})
@@ -212,15 +238,8 @@ class TextChunker:
                 # Flush current chunk if any
                 if len(current_chunk) > 1:  # More than just title
                     chunk_text = join_chunk_text(current_chunk)
-                    position = get_chunk_start_pos(current_chunk)
-                    chunks.append({
-                        'chunk_index': chunk_index,
-                        'chunk_text': chunk_text,
-                        'heading_path': self.get_heading_path(headings, position),
-                        'token_count': current_tokens
-                    })
-                    chunk_index += 1
-                    
+                    finalize_chunk(chunk_text, current_chunk, current_tokens)
+
                     # Start new chunk with overlap
                     current_chunk = [current_chunk[-1]]
                     current_tokens = self.count_tokens(current_chunk[0]['text'])
@@ -236,15 +255,8 @@ class TextChunker:
                     if current_tokens + sentence_tokens > self.max_tokens:
                         # Save current chunk
                         chunk_text = join_chunk_text(current_chunk)
-                        position = get_chunk_start_pos(current_chunk) if current_chunk else 0
-                        chunks.append({
-                            'chunk_index': chunk_index,
-                            'chunk_text': chunk_text,
-                            'heading_path': self.get_heading_path(headings, position),
-                            'token_count': current_tokens
-                        })
-                        chunk_index += 1
-                        
+                        finalize_chunk(chunk_text, current_chunk, current_tokens)
+
                         # Start new chunk with overlap
                         overlap_text = sentence if sentence_tokens < self.overlap_tokens else ''
                         if overlap_text:
@@ -260,15 +272,8 @@ class TextChunker:
             elif current_tokens + para_tokens > self.max_tokens:
                 # Save current chunk
                 chunk_text = join_chunk_text(current_chunk)
-                position = get_chunk_start_pos(current_chunk) if current_chunk else 0
-                chunks.append({
-                    'chunk_index': chunk_index,
-                    'chunk_text': chunk_text,
-                    'heading_path': self.get_heading_path(headings, position),
-                    'token_count': current_tokens
-                })
-                chunk_index += 1
-                
+                finalize_chunk(chunk_text, current_chunk, current_tokens)
+
                 # Start new chunk with overlap from previous chunk
                 overlap_size = 0
                 overlap_parts = []
@@ -290,13 +295,7 @@ class TextChunker:
         # Add final chunk if any
         if current_chunk and current_tokens > 0:
             chunk_text = join_chunk_text(current_chunk)
-            position = get_chunk_start_pos(current_chunk) if len(current_chunk) > 1 else 0
-            chunks.append({
-                'chunk_index': chunk_index,
-                'chunk_text': chunk_text,
-                'heading_path': self.get_heading_path(headings, position),
-                'token_count': current_tokens
-            })
+            finalize_chunk(chunk_text, current_chunk, current_tokens)
         
         return chunks if chunks else [{
             'chunk_index': 0,
