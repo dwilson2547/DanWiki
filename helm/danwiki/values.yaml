@@ -24,11 +24,11 @@ embedding:
   dimension: "384"
 
 uploads:
-  storageClass: nfs-client
+  storageClass: nfs-dataset
   storageSize: 20Gi
 
 redis:
-  storageClass: nfs-client
+  storageClass: nfs-dataset
   storageSize: 1Gi
 
 tagging:
