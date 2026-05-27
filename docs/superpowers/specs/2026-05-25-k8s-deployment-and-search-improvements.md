@@ -29,8 +29,8 @@ Two new StatefulSets appended to `cluster_config/postgres/postgres.yaml` alongsi
 
 | Name | Namespace | Image | Storage | Secret |
 |---|---|---|---|---|
-| `postgres-pgvector` | `postgres` | `pgvector/pgvector:pg16` | 50Gi `nfs-dataset` | `postgres-pgvector-credentials` |
-| `postgres-pgvector-dev` | `postgres` | `pgvector/pgvector:pg16` | 20Gi `nfs-dataset` | `postgres-pgvector-dev-credentials` |
+| `postgres-pgvector` | `postgres` | `pgvector/pgvector:pg16` | 150Gi `nfs-dataset` | `postgres-pgvector-credentials` |
+| `postgres-pgvector-dev` | `postgres` | `pgvector/pgvector:pg16` | 50Gi `nfs-dataset` | `postgres-pgvector-dev-credentials` |
 
 Init SQL via ConfigMap mounted at `/docker-entrypoint-initdb.d/init.sql` (same mechanism as `cluster_config/docker/postgres/init.sql`): `CREATE EXTENSION IF NOT EXISTS vector;`
 
