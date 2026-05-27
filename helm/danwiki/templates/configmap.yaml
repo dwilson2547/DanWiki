@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "danwiki.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "danwiki.labels" . | nindent 4 }}
+data:
+  FLASK_ENV: "production"
+  CORS_ORIGINS: {{ .Values.cors.origins | quote }}
+  EMBEDDING_SERVICE_URL: "http://{{ include "danwiki.fullname" . }}-embedding-service:8001"
+  EMBEDDING_MODEL: {{ .Values.embedding.model | quote }}
+  EMBEDDING_DIMENSION: {{ .Values.embedding.dimension | quote }}
+  REDIS_URL: "redis://{{ include "danwiki.fullname" . }}-redis:6379/0"
+  DATABASE_NAME: {{ .Values.database.name | quote }}
