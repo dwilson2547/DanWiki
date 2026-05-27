@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "danwiki.fullname" . }}-embedding-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "danwiki.labels" . | nindent 4 }}
+    app.kubernetes.io/component: embedding-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "danwiki.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: embedding-service
+  template:
+    metadata:
+      labels:
+        {{- include "danwiki.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: embedding-service
+    spec:
+      containers:
+        - name: embedding-service
+          image: "{{ .Values.image.repository }}/danwiki-embedding:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8001
+          env:
+            - name: DEVICE
+              value: {{ .Values.embedding.device | quote }}
+            - name: EMBEDDING_MODEL
+              value: {{ .Values.embedding.model | quote }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.embeddingService.resources | nindent 12 }}
