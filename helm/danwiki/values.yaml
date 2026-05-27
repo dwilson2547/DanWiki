@@ -1,7 +1,7 @@
 image:
   repository: dwilson2547
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 ingress:
   host: danwiki.local
