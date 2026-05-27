@@ -1,0 +1,17 @@
+{{- if .Values.tagging.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "danwiki.fullname" . }}-tagging-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "danwiki.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tagging-api
+spec:
+  selector:
+    {{- include "danwiki.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: tagging-api
+  ports:
+    - port: 8002
+      targetPort: 8002
+{{- end }}

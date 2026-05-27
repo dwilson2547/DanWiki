@@ -1,0 +1,50 @@
+{{- if .Values.tagging.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "danwiki.fullname" . }}-tagging-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "danwiki.labels" . | nindent 4 }}
+    app.kubernetes.io/component: tagging-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "danwiki.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: tagging-api
+  template:
+    metadata:
+      labels:
+        {{- include "danwiki.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: tagging-api
+    spec:
+      containers:
+        - name: tagging-api
+          image: "{{ .Values.image.repository }}/danwiki-tagging:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8002
+          env:
+            - name: REDIS_URL
+              value: "redis://{{ include "danwiki.fullname" . }}-redis:6379/0"
+            - name: API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.tagging.secretName }}
+                  key: API_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 10
+          resources:
+            requests:
+              cpu: 500m
+              memory: 4Gi
+            limits:
+              cpu: "2"
+              memory: 8Gi
+{{- end }}

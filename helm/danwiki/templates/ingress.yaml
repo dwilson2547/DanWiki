@@ -1,0 +1,21 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "danwiki.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "danwiki.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: {{ include "danwiki.fullname" . }}-backend
+          port: 5000
+    - match: Host(`{{ .Values.ingress.host }}`)
+      kind: Rule
+      services:
+        - name: {{ include "danwiki.fullname" . }}-frontend
+          port: 80
