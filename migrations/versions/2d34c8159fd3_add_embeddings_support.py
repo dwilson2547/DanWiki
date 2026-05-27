@@ -12,7 +12,7 @@ from pgvector.sqlalchemy import Vector
 
 # revision identifiers, used by Alembic.
 revision = '2d34c8159fd3'
-down_revision = None
+down_revision = '0001_initial_schema'
 branch_labels = None
 depends_on = None
 
