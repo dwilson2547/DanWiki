@@ -1,0 +1,42 @@
+ingress:
+  host: danwiki-dev.local
+
+database:
+  host: postgres-pgvector-dev.postgres.svc.cluster.local
+  name: wiki_db_dev
+
+cors:
+  origins: "http://danwiki-dev.local"
+
+uploads:
+  storageSize: 5Gi
+
+redis:
+  storageSize: 512Mi
+
+backend:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+worker:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+embeddingService:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

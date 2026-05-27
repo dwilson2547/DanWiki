@@ -1,0 +1,72 @@
+image:
+  repository: ghcr.io/dwilson2547
+  tag: latest
+  pullPolicy: IfNotPresent
+
+ingress:
+  host: danwiki.local
+
+database:
+  host: postgres-pgvector.postgres.svc.cluster.local
+  port: 5432
+  name: wiki_db
+  secretName: danwiki-db-credentials   # key: DATABASE_URL
+
+appSecrets:
+  secretName: danwiki-app-secrets       # keys: SECRET_KEY, JWT_SECRET_KEY
+
+cors:
+  origins: "https://danwiki.local"
+
+embedding:
+  model: sentence-transformers/all-MiniLM-L6-v2
+  device: cpu
+  dimension: "384"
+
+uploads:
+  storageClass: nfs-client
+  storageSize: 20Gi
+
+redis:
+  storageClass: nfs-client
+  storageSize: 1Gi
+
+tagging:
+  enabled: false
+  secretName: danwiki-tagging-secrets   # key: API_TOKEN
+
+backend:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+worker:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+frontend:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+embeddingService:
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
