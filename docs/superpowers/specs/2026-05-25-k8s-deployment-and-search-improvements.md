@@ -100,7 +100,7 @@ helm/danwiki/
 **Key values:**
 ```yaml
 image:
-  repository: ghcr.io/dwilson2547
+  repository: dwilson2547
   tag: latest
   pullPolicy: IfNotPresent
 
