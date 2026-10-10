@@ -44,6 +44,16 @@ class Config:
     EMBEDDING_BATCH_SIZE = int(os.getenv('EMBEDDING_BATCH_SIZE', '32'))
     EMBEDDING_REQUEST_TIMEOUT = int(os.getenv('EMBEDDING_REQUEST_TIMEOUT', '30'))
     IVFFLAT_PROBES = int(os.getenv('IVFFLAT_PROBES', '10'))
+
+    # Sign-in through authentik (OIDC). The only way in: there is no password login.
+    OIDC_ISSUER = os.getenv('OIDC_ISSUER', '')
+    OIDC_CLIENT_ID = os.getenv('OIDC_CLIENT_ID', '')
+    OIDC_CLIENT_SECRET = os.getenv('OIDC_CLIENT_SECRET', '')
+    OIDC_ENABLED = bool(OIDC_ISSUER and OIDC_CLIENT_ID and OIDC_CLIENT_SECRET)
+    OIDC_REDIRECT_URI = os.getenv('OIDC_REDIRECT_URI', 'http://localhost:3000/api/auth/oidc/callback')
+    OIDC_UI_URL = os.getenv('OIDC_UI_URL', 'http://localhost:3000').rstrip('/')
+    OIDC_ADMIN_GROUP = os.getenv('OIDC_ADMIN_GROUP', 'danwiki-admins')
+    OIDC_CREATOR_GROUP = os.getenv('OIDC_CREATOR_GROUP', 'danwiki-creators')
     
     @property
     def all_allowed_extensions(self):
@@ -65,6 +75,7 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     
     # Stricter security settings
+    SESSION_COOKIE_SECURE = True  # carries the OIDC state between login and callback
     JWT_COOKIE_SECURE = True
     JWT_COOKIE_CSRF_PROTECT = True
 

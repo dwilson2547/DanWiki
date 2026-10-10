@@ -1,7 +1,7 @@
 """
 Admin routes for system administration.
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, current_app, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import Schema, fields, validate, ValidationError
 from app.models import db, User, Wiki, Page
@@ -153,6 +153,11 @@ def update_user(user_id):
     except ValidationError as err:
         return jsonify({'error': 'Validation failed', 'details': err.messages}), 400
     
+    # Site admin is set from authentik groups at every sign-in (app/routes/oidc.py);
+    # a change here would silently revert, so refuse it.
+    if current_app.config.get('OIDC_ENABLED') and 'is_admin' in data and data['is_admin'] != bool(user.is_admin):
+        return jsonify({'error': f"Admin is managed in authentik (group {current_app.config['OIDC_ADMIN_GROUP']})"}), 400
+
     # Prevent admin from removing their own admin status
     if user_id == current_user_id and 'is_admin' in data and not data['is_admin']:
         return jsonify({'error': 'Cannot remove your own admin privileges'}), 400

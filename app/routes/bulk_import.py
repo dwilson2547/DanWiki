@@ -40,6 +40,8 @@ def import_new_wiki():
     
     if not user:
         return jsonify({'error': 'User not found'}), 404
+    if not user.may_create_wikis:
+        return jsonify({'error': 'You do not have permission to create wikis'}), 403
     
     # Validate form data
     if 'archive' not in request.files:

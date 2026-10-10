@@ -7,7 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 export default function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -30,8 +30,7 @@ export default function UserMenu() {
 
   const handleLogout = () => {
     setIsOpen(false);
-    logout();
-    navigate('/');
+    signOut();
   };
 
   if (!user) return null;

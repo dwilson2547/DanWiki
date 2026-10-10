@@ -59,9 +59,11 @@ def create_app(config_name: str = None) -> Flask:
     # Register blueprints
     from app.routes import (auth_bp, wikis_bp, pages_bp, attachments_bp, 
                            search_bp, semantic_search_bp, bulk_import_bp, admin_bp,
-                           tags_bp, page_tags_bp)
+                           tags_bp, page_tags_bp, oidc_bp, init_oidc)
     
+    init_oidc(app)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(oidc_bp)
     app.register_blueprint(wikis_bp)
     app.register_blueprint(pages_bp)
     app.register_blueprint(attachments_bp)

@@ -4,9 +4,11 @@ Flask-SQLAlchemy
 Flask-JWT-Extended
 Flask-Migrate
 Flask-CORS
+Authlib
+gunicorn
 
 # Database
-SQLAlchemy
+SQLAlchemy<2.1  # 2.1 maps postgresql:// to psycopg 3, which is not installed
 psycopg2-binary
 
 # Password hashing

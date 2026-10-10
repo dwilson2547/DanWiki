@@ -38,6 +38,8 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)  # System-wide admin
     is_approved = db.Column(db.Boolean, default=False)  # Admin approval required
+    # Set from authentik groups at every sign-in (app/routes/oidc.py).
+    can_create_wikis = db.Column(db.Boolean, nullable=False, default=False, server_default='false')
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), 
                           onupdate=lambda: datetime.now(timezone.utc))
@@ -49,6 +51,12 @@ class User(db.Model):
                                     foreign_keys='Page.created_by_id', lazy='dynamic')
     pages_modified = db.relationship('Page', back_populates='last_modified_by',
                                      foreign_keys='Page.last_modified_by_id', lazy='dynamic')
+    identities = db.relationship('UserIdentity', back_populates='user',
+                                 cascade='all, delete-orphan', passive_deletes=True)
+
+    @property
+    def may_create_wikis(self) -> bool:
+        return bool(self.is_admin or self.can_create_wikis)
     
     def set_password(self, password: str) -> None:
         """Hash and set the user's password."""
@@ -102,11 +110,26 @@ class User(db.Model):
             'is_active': self.is_active,
             'is_admin': self.is_admin,
             'is_approved': self.is_approved,
+            'can_create_wikis': self.may_create_wikis,
             'created_at': self.created_at.isoformat() if self.created_at else None,
         }
         if include_email:
             data['email'] = self.email
         return data
+
+
+class UserIdentity(db.Model):
+    """Link from an OIDC identity (issuer, sub) to a local user."""
+    __tablename__ = 'user_identities'
+    __table_args__ = (db.UniqueConstraint('issuer', 'subject', name='uq_user_identities_issuer_subject'),)
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    issuer = db.Column(db.String(255), nullable=False)
+    subject = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = db.relationship('User', back_populates='identities')
 
 
 class Wiki(db.Model):

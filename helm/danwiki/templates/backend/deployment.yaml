@@ -45,6 +45,11 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.appSecrets.secretName }}
                   key: JWT_SECRET_KEY
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.oidc.secretName }}
+                  key: client_secret
           readinessProbe:
             httpGet:
               path: /api/health

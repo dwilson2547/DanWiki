@@ -417,10 +417,13 @@ export default function UserManagement() {
               <input
                 type="checkbox"
                 checked={editForm.is_admin || false}
-                onChange={(e) => setEditForm({ ...editForm, is_admin: e.target.checked })}
+                disabled
               />
               <span>Administrator privileges</span>
             </label>
+            <p className="text-secondary text-sm mt-1">
+              Managed in authentik: members of danwiki-admins become admins at their next sign-in.
+            </p>
           </div>
         </form>
       </Modal>

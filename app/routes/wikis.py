@@ -120,6 +120,9 @@ def list_wikis():
 def create_wiki():
     """Create a new wiki."""
     current_user_id = int(get_jwt_identity())
+    user = User.query.get(current_user_id)
+    if not user or not user.may_create_wikis:
+        return jsonify({'error': 'You do not have permission to create wikis'}), 403
     
     try:
         data = wiki_schema.load(request.get_json())

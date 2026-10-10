@@ -13,3 +13,9 @@ data:
   EMBEDDING_DIMENSION: {{ .Values.embedding.dimension | quote }}
   REDIS_URL: "redis://{{ include "danwiki.fullname" . }}-redis:6379/0"
   DATABASE_NAME: {{ .Values.database.name | quote }}
+  OIDC_ISSUER: {{ .Values.oidc.issuer | quote }}
+  OIDC_CLIENT_ID: {{ .Values.oidc.clientId | quote }}
+  OIDC_REDIRECT_URI: "https://{{ .Values.ingress.host }}/api/auth/oidc/callback"
+  OIDC_UI_URL: "https://{{ .Values.ingress.host }}"
+  OIDC_ADMIN_GROUP: {{ .Values.oidc.adminGroup | quote }}
+  OIDC_CREATOR_GROUP: {{ .Values.oidc.creatorGroup | quote }}

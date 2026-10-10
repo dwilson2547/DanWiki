@@ -16,4 +16,6 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 5000
 
-CMD ["python", "run.py"]
+# run.py's app.run() is Flask's debug server; never serve that publicly.
+# Long timeout: bulk imports upload and extract archives in the request.
+CMD ["gunicorn", "run:app", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "300", "--access-logfile", "-"]

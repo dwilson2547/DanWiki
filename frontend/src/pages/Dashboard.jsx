@@ -164,13 +164,15 @@ export default function Dashboard() {
                 <Home size={18} />
                 Explore Public Wikis
               </Link>
-              <button 
-                className="btn btn-primary"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <Plus size={18} />
-                New Wiki
-              </button>
+              {user?.can_create_wikis && (
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowCreateModal(true)}
+                >
+                  <Plus size={18} />
+                  New Wiki
+                </button>
+              )}
               <UserMenu />
             </div>
           </div>
@@ -196,14 +198,23 @@ export default function Dashboard() {
         <div className="empty-state">
           <Book size={48} className="empty-state-icon" style={{ margin: '0 auto' }} />
           <h3 className="font-semibold mb-2">No wikis yet</h3>
-          <p className="text-secondary mb-4">Create your first wiki to get started</p>
-          <button 
-            className="btn btn-primary"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <Plus size={18} />
-            Create Wiki
-          </button>
+          {user?.can_create_wikis ? (
+            <>
+              <p className="text-secondary mb-4">Create your first wiki to get started</p>
+              <button 
+                className="btn btn-primary"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <Plus size={18} />
+                Create Wiki
+              </button>
+            </>
+          ) : (
+            <p className="text-secondary mb-4">
+              Wikis shared with you will appear here. Creating wikis is limited to members of the
+              danwiki-creators group.
+            </p>
+          )}
         </div>
       ) : (
         <div style={{ 

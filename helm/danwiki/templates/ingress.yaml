@@ -1,21 +1,38 @@
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+# Public only: the OIDC redirect and UI URL are https://{{ .Values.ingress.host }}.
+# /api goes to the backend (Traefik ranks the longer path first), the rest to the SPA.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
   name: {{ include "danwiki.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "danwiki.labels" . | nindent 4 }}
+    dns.danwils.com/public: "true"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: pubsecure
+    external-dns.kubernetes.io/target: danwils.com
 spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`/api`)
-      kind: Rule
-      services:
-        - name: {{ include "danwiki.fullname" . }}-backend
-          port: 5000
-    - match: Host(`{{ .Values.ingress.host }}`)
-      kind: Rule
-      services:
-        - name: {{ include "danwiki.fullname" . }}-frontend
-          port: 80
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ .Values.ingress.tlsSecretName }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "danwiki.fullname" . }}-backend
+                port:
+                  number: 5000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "danwiki.fullname" . }}-frontend
+                port:
+                  number: 80

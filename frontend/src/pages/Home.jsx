@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Globe, User, Calendar, Search as SearchIcon, LogIn, UserPlus } from 'lucide-react';
+import { BookOpen, Globe, User, Calendar, Search as SearchIcon, LogIn } from 'lucide-react';
 import { wikisAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -68,13 +68,9 @@ export default function Home() {
                 </button>
               ) : (
                 <>
-                  <Link to="/login" className="btn btn-secondary">
+                  <Link to="/login" className="btn btn-primary">
                     <LogIn size={18} />
                     Sign In
-                  </Link>
-                  <Link to="/register" className="btn btn-primary">
-                    <UserPlus size={18} />
-                    Sign Up
                   </Link>
                 </>
               )}

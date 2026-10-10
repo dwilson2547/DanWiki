@@ -5,7 +5,7 @@ A modern full-stack wiki application with user management, hierarchical pages, f
 ## Features
 
 ### Core Features
-- **User Management**: Registration, authentication with JWT, role-based permissions
+- **User Management**: Sign-in through authentik (OIDC), app-issued JWTs, role-based permissions
 - **Multiple Wikis**: Users can create and manage multiple wikis with public/private visibility
 - **Public Home Page**: Browse public wikis organized by author without authentication
 - **Hierarchical Pages**: Pages can have parent-child relationships for organized content
@@ -35,7 +35,7 @@ A modern full-stack wiki application with user management, hierarchical pages, f
 ### Backend
 - **Framework**: Flask with SQLAlchemy ORM
 - **Database**: PostgreSQL with pgvector extension for vector similarity search
-- **Authentication**: JWT with access/refresh tokens (Flask-JWT-Extended)
+- **Authentication**: authentik OIDC sign-in (Authlib); the app then issues JWT access/refresh tokens (Flask-JWT-Extended). No password login.
 - **Validation**: Marshmallow schemas
 - **Task Queue**: Redis Queue (RQ) for background embedding generation
 - **AI/ML**: sentence-transformers for embeddings, tiktoken for text chunking
@@ -151,13 +151,20 @@ python create_sample_archive.py
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login and get tokens |
+| GET | `/api/auth/oidc/login` | Start sign-in through authentik |
+| GET | `/api/auth/oidc/callback` | authentik redirect; hands tokens to the UI at `/login/callback#...` |
+| GET | `/api/auth/oidc/logout` | End the authentik session |
 | POST | `/api/auth/refresh` | Refresh access token |
 | GET | `/api/auth/me` | Get current user |
 | PATCH | `/api/auth/me` | Update profile (display name, avatar) |
 | DELETE | `/api/auth/me` | Delete account (with/without wikis) |
-| POST | `/api/auth/change-password` | Change password |
+
+Sign-in is only through authentik (`app/routes/oidc.py`); there is no registration or password
+login. Users are matched by OIDC `sub` (first sign-in: by email). At every sign-in the authentik
+groups set two site-wide flags: `danwiki-admins` → site admin, `danwiki-creators` → may create wikis
+(admins always may). Per-wiki roles (viewer/editor/admin) are managed in DanWiki. Config:
+`OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_REDIRECT_URI`, `OIDC_UI_URL`,
+`OIDC_ADMIN_GROUP`, `OIDC_CREATOR_GROUP` (`app/config.py`).
 
 ### Wikis
 
@@ -216,19 +223,7 @@ python create_sample_archive.py
 
 ## API Examples
 
-### Register User
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john","email":"john@example.com","password":"securepass123"}'
-```
-
-### Login
-```bash
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john","password":"securepass123"}'
-```
+Get a token by signing in through the UI (authentik); it is in `localStorage.access_token`.
 
 ### Create Wiki (with token)
 ```bash

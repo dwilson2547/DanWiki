@@ -3,8 +3,10 @@ image:
   tag: latest
   pullPolicy: Always
 
+# Public (Traefik pubsecure, letsencrypt-prod, external-dns). Sign-in is through authentik.
 ingress:
-  host: danwiki.local
+  host: danwiki.danwils.com
+  tlsSecretName: danwiki-danwils-tls
 
 database:
   host: postgres-pgvector.postgres.svc.cluster.local
@@ -16,7 +18,16 @@ appSecrets:
   secretName: danwiki-app-secrets       # keys: SECRET_KEY, JWT_SECRET_KEY
 
 cors:
-  origins: "https://danwiki.local"
+  origins: "https://danwiki.danwils.com"
+
+# authentik OIDC client (cluster_config authentik/blueprints/danwiki.yaml).
+# Redirect URI and UI URL derive from ingress.host.
+oidc:
+  issuer: https://auth.danwils.com/application/o/danwiki/
+  clientId: danwiki
+  secretName: danwiki-oidc              # key: client_secret
+  adminGroup: danwiki-admins
+  creatorGroup: danwiki-creators
 
 embedding:
   model: sentence-transformers/all-MiniLM-L6-v2

@@ -86,7 +86,8 @@ python tests/test_slug_uniqueness.py  # Run specific test
 
 Copy `.env.example` to `.env`. Key variables:
 - `DATABASE_URL` - PostgreSQL connection (or SQLite for dev)
-- `SECRET_KEY`, `JWT_SECRET_KEY` - Security keys
+- `SECRET_KEY`, `JWT_SECRET_KEY` - Security keys (`SECRET_KEY` signs the OIDC state cookie)
+- `OIDC_*` - authentik sign-in, the only way in (see README → Authentication)
 - `EMBEDDING_SERVICE_URL` - Embedding service endpoint
 - `CORS_ORIGINS` - Allowed frontend origins
 

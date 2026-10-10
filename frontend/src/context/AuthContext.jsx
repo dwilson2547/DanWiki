@@ -29,40 +29,25 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = async (username, password) => {
-    console.log('AuthContext: Attempting login', username);
-    const response = await authAPI.login({ username, password });
-    console.log('AuthContext: Login response', response.data);
-    const { user, access_token, refresh_token } = response.data;
-    
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('refresh_token', refresh_token);
-    setUser(user);
-    
-    return user;
-  };
-
-  const register = async (userData) => {
-    const response = await authAPI.register(userData);
-    const { user, access_token, refresh_token, pending_approval } = response.data;
-    
-    // If account is pending approval, don't log them in
-    if (pending_approval) {
-      return { user, pending_approval: true };
-    }
-    
-    // Otherwise, log them in (for backwards compatibility or special cases)
-    localStorage.setItem('access_token', access_token);
-    localStorage.setItem('refresh_token', refresh_token);
-    setUser(user);
-    
-    return { user, pending_approval: false };
+  // Tokens come from the authentik sign-in callback (pages/LoginCallback.jsx).
+  const completeLogin = async (accessToken, refreshToken) => {
+    localStorage.setItem('access_token', accessToken);
+    localStorage.setItem('refresh_token', refreshToken);
+    const response = await authAPI.getMe();
+    setUser(response.data.user);
+    return response.data.user;
   };
 
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     setUser(null);
+  };
+
+  // Also end the authentik session, so the next sign-in asks again.
+  const signOut = () => {
+    logout();
+    window.location.href = '/api/auth/oidc/logout';
   };
 
   const refreshUser = async () => {
@@ -81,7 +66,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, completeLogin, logout, signOut, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

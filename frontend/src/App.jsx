@@ -5,7 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import LoginCallback from './pages/LoginCallback';
 import Dashboard from './pages/Dashboard';
 import UserSettings from './pages/UserSettings';
 import WikiLayout from './pages/WikiLayout';
@@ -82,11 +82,9 @@ function AppRoutes() {
           <Login />
         </PublicRoute>
       } />
-      <Route path="/register" element={
-        <PublicRoute>
-          <Register />
-        </PublicRoute>
-      } />
+      <Route path="/login/callback" element={<LoginCallback />} />
+      {/* Sign-up happens in authentik */}
+      <Route path="/register" element={<Navigate to="/login" replace />} />
       
       {/* Protected routes */}
       <Route path="/dashboard" element={
