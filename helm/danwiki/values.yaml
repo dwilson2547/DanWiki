@@ -28,6 +28,12 @@ oidc:
   secretName: danwiki-oidc              # key: client_secret
   adminGroup: danwiki-admins
   creatorGroup: danwiki-creators
+  # The pod has no IPv6 route and auth.danwils.com resolves to Cloudflare IPv6 only, so the backend
+  # reaches authentik over the LAN via traefik-public (valid TLS, no Cloudflare hop), as photo-dump does.
+  hostAliases:
+    - ip: 192.168.0.65
+      hostnames:
+        - auth.danwils.com
 
 embedding:
   model: sentence-transformers/all-MiniLM-L6-v2
