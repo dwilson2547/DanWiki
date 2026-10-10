@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Sign-in through authentik only** (OIDC, `app/routes/oidc.py`); password login, registration and
+  change-password removed. Users are linked by OIDC `sub` (new `user_identities` table; first sign-in
+  matches by email). authentik groups set `is_admin` (`danwiki-admins`) and the new
+  `users.can_create_wikis` (`danwiki-creators`) at every sign-in; creating or importing a new wiki now
+  needs one of them, and the admin flag can no longer be changed in the app. Migration `3b7e1f0a9c21`.
+- Public at https://danwiki.danwils.com: the chart's IngressRoute (LAN, `danwiki.local`) is replaced by
+  a public Ingress (pubsecure, letsencrypt-prod, external-dns).
+- Backend image serves with gunicorn instead of Flask's debug server.
+- `SQLAlchemy<2.1`: 2.1 maps `postgresql://` to psycopg 3, which is not installed, so an unpinned
+  rebuild would not start.
+
 ### Fixed
 - Resolved six Kubernetes deployment blockers during initial cluster bring-up (nginx crash, missing migrations, NFS CSI issues, pullPolicy, pgvector extension) — see [docs/issues/2026_05_27_k8s_initial_deployment_blockers.md](docs/issues/2026_05_27_k8s_initial_deployment_blockers.md)
 
