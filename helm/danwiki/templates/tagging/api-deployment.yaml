@@ -19,6 +19,7 @@ spec:
         {{- include "danwiki.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: tagging-api
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: tagging-api
           image: "{{ .Values.image.repository }}/danwiki-tagging:{{ .Values.image.tag }}"

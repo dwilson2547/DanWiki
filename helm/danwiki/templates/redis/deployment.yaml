@@ -18,6 +18,7 @@ spec:
         {{- include "danwiki.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: redis
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: redis
           image: redis:7-alpine

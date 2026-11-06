@@ -20,6 +20,7 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: worker
           image: "{{ .Values.image.repository }}/danwiki-backend:{{ .Values.image.tag }}"

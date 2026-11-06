@@ -18,6 +18,7 @@ spec:
         {{- include "danwiki.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: embedding-service
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: embedding-service
           image: "{{ .Values.image.repository }}/danwiki-embedding:{{ .Values.image.tag }}"

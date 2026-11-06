@@ -18,6 +18,7 @@ spec:
         {{- include "danwiki.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: frontend
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: frontend
           image: "{{ .Values.image.repository }}/danwiki-frontend:{{ .Values.image.tag }}"
